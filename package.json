@@ -1,0 +1,48 @@
+{
+  "name": "logos",
+  "version": "0.1.0",
+  "description": "Nucleo condiviso di Alexandria e Simposium: Markdown, citazioni CSL, export, commenti, revisioni, Tabula (funzioni pure, testate).",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./*": "./src/*.ts",
+    "./csl/*": "./public/csl/*"
+  },
+  "files": [
+    "src",
+    "!src/**/*.test.ts",
+    "public",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@citation-js/core": "^0.9.0",
+    "@citation-js/plugin-bibtex": "^0.9.0",
+    "@citation-js/plugin-csl": "^0.9.0",
+    "@citation-js/plugin-ris": "^0.9.0",
+    "@mozilla/readability": "^0.6.0",
+    "@xmldom/xmldom": "0.9.12",
+    "citeproc": "^2.4.63",
+    "diff": "^9.0.0",
+    "docx": "^9.8.1",
+    "jszip": "^3.10.2",
+    "mathjax-full": "^3.2.1",
+    "node-diff3": "^3.2.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.5"
+  },
+  "devDependencies": {
+    "@types/diff": "^7.0.2",
+    "@types/mdast": "^4.0.4",
+    "@types/node": "^26.6.4",
+    "jsdom": "^29.1.1",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.3"
+  }
+}
