@@ -305,6 +305,8 @@ export async function toDocx(doc: PMNode, ctx: ExportContext): Promise<Uint8Arra
           for (const line of (b.content ?? []).map((c) => c.text ?? '').join('').split('\n')) out.push(new Paragraph({ children: [run(line, { code: true })] }));
           break;
         case 'horizontalRule':
+          // una riga vuota sopra il divisore
+          out.push(new Paragraph({ children: [] }));
           out.push(new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun('* * *')] }));
           break;
         case 'figure': {

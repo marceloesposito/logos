@@ -144,7 +144,8 @@ export function toHtml(doc: PMNode, ctx: ExportContext): string {
       case 'codeBlock':
         return `<pre><code>${escapeHtml((b.content ?? []).map((c) => c.text ?? '').join(''))}</code></pre>`;
       case 'horizontalRule':
-        return '<hr>';
+        // una riga vuota sopra il divisore
+        return '<p class="hr-space" aria-hidden="true">&nbsp;</p><hr>';
       case 'figure': {
         const img = ctx.image(String(b.attrs?.src ?? ''));
         const src = img ? `data:${img.mime};base64,${bytesToBase64(img.data)}` : '';

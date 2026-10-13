@@ -180,3 +180,18 @@ describe('carattere del documento scelto fra quelli di Alexandria e i classici d
     expect(TEXT_FONTS.map((f) => f.group)).toEqual(expect.arrayContaining(['alexandria', 'web', 'generic']));
   });
 });
+
+describe('divisore: una riga vuota sopra in ogni export', () => {
+  const md = 'Prima.\n\n---\n\nDopo.\n';
+
+  it('PDF: spazio alto una riga del corpo', async () => {
+    const { toTypst } = await import('./typst');
+    expect(toTypst(parseMarkdown(md), ctx())).toContain('#v(1.5em)\n#align(center, line(length: 30%');
+  });
+
+  it('HTML, LaTeX e testo semplice', () => {
+    expect(toHtml(parseMarkdown(md), ctx())).toContain('<p class="hr-space" aria-hidden="true">&nbsp;</p><hr>');
+    expect(toLatex(parseMarkdown(md), ctx(), 'b.bib').tex).toContain('\\vspace{\\baselineskip}\n\\begin{center}\\rule');
+    expect(toPlainText(parseMarkdown(md), ctx())).toContain('Prima.\n\n\n* * *\n\nDopo.');
+  });
+});
