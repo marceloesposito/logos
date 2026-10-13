@@ -7,6 +7,8 @@ import { plainText } from '../doc/counts';
 import type { ExportContext } from './context';
 import { parseMarkdown } from '../doc/parse';
 
+const HR_SPACE = '\u0000hr\u0000';
+
 export function toPlainText(doc: PMNode, ctx: ExportContext): string {
   const notes: string[] = [];
   let inNote = 0;
@@ -63,7 +65,8 @@ export function toPlainText(doc: PMNode, ctx: ExportContext): string {
       case 'codeBlock':
         return (b.content ?? []).map((c) => c.text ?? '').join('').replace(/^/gm, indent + '    ');
       case 'horizontalRule':
-        return '* * *';
+        // una riga vuota in piu' sopra il divisore (il segnaposto supera la riduzione delle righe vuote)
+        return `${HR_SPACE}* * *`;
       case 'figure':
         return `[${b.attrs?.caption || b.attrs?.src}]`;
       case 'mathBlock':
@@ -87,5 +90,5 @@ export function toPlainText(doc: PMNode, ctx: ExportContext): string {
     .filter((s) => s !== '')
     .join('\n\n');
   if (notes.length) out += `\n\n${'_'.repeat(20)}\n` + notes.map((t, i) => `[${i + 1}] ${t}`).join('\n');
-  return out.replace(/\n{3,}/g, '\n\n').trim() + '\n';
+  return out.replace(/\n{3,}/g, '\n\n').trim().split(HR_SPACE).join('\n') + '\n';
 }

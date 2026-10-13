@@ -196,7 +196,8 @@ function block(b: PMNode, ctx: ExportContext, st: State): string {
       return `#block(fill: luma(245), inset: 8pt, radius: 2pt, width: 100%)[#raw(block: true${lang}, ${str(code)})]`;
     }
     case 'horizontalRule':
-      return '#align(center, line(length: 30%, stroke: 0.5pt))';
+      // una riga vuota sopra il divisore (alta quanto una riga del corpo)
+      return `#v(${n(L.styles.body.leading ?? L.leading)}em)\n#align(center, line(length: 30%, stroke: 0.5pt))`;
     case 'figure': {
       const a = b.attrs ?? {};
       const img = ctx.image(String(a.src ?? ''));

@@ -1,6 +1,6 @@
 {
   "name": "logos",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Nucleo condiviso di Alexandria e Simposium: Markdown, citazioni CSL, export, commenti, revisioni, Tabula (funzioni pure, testate).",
   "license": "MIT",
   "type": "module",

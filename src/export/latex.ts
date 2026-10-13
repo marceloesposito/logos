@@ -159,7 +159,8 @@ export function toLatex(doc: PMNode, ctx: ExportContext, bibFile: string): Latex
       case 'codeBlock':
         return `\\begin{verbatim}\n${(b.content ?? []).map((c) => c.text ?? '').join('')}\n\\end{verbatim}`;
       case 'horizontalRule':
-        return '\\begin{center}\\rule{0.3\\linewidth}{0.4pt}\\end{center}';
+        // una riga vuota sopra il divisore
+        return '\\vspace{\\baselineskip}\n\\begin{center}\\rule{0.3\\linewidth}{0.4pt}\\end{center}';
       case 'figure': {
         const src = String(b.attrs?.src ?? '');
         const name = `img${images.length + 1}${(src.match(/\.\w+$/)?.[0] ?? '.png').toLowerCase()}`;
