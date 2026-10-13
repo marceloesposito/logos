@@ -1,7 +1,7 @@
 // Documento -> pagina HTML autonoma (stili inclusi, immagini e formule incorporate, note in fondo).
 // Si scrive in un file: tutto il testo dell'utente passa da escapeHtml.
 import { resolveCallout, calloutHex } from '../doc/callouts';
-import { WEB_FONT, styleFont } from '../layout/model';
+import { WEB_FONT, bodyFontStack } from '../layout/model';
 import { docTexts } from '../i18n/writing';
 import { markColor, TEXT_HEX, HIGHLIGHT_HEX, type TextColor, type HighlightColor } from '../doc/colors';
 import type { PMNode, PMMark, CitationItem } from '../doc/types';
@@ -189,7 +189,7 @@ export function toHtml(doc: PMNode, ctx: ExportContext): string {
   const fn = notes.length
     ? `<section class="footnotes"><hr><ol>${notes.map((n, i) => `<li id="fn${i + 1}">${n} <a href="#fnref${i + 1}">↩</a></li>`).join('')}</ol></section>`
     : '';
-  const font = WEB_FONT[styleFont(L.styles.body, L)];
+  const font = bodyFontStack(L, 'web');
   // stili con un carattere loro (Layout > Stili di paragrafo)
   const styleCss = (
     [

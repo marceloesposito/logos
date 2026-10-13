@@ -9,7 +9,7 @@ import { MARK_ORDER } from '../doc/types';
 import { parseMarkdown } from '../doc/parse';
 import type { ExportContext } from './context';
 import type { LayoutSettings, MasterId, MasterPage, ParaStyle } from '../layout/model';
-import { TYPST_FONT, styleFont } from '../layout/model';
+import { TYPST_FONT, bodyFontStack } from '../layout/model';
 import { docTexts } from '../i18n/writing';
 
 /** Stringa Typst sicura. */
@@ -338,7 +338,7 @@ export function preamble(ctx: ExportContext, hasLeadingSection: boolean): string
     ? `(top: ${n(L.marginTopMm)}mm, bottom: ${n(L.marginBottomMm)}mm, inside: ${n(L.marginInnerMm)}mm, outside: ${n(L.marginOuterMm)}mm)`
     : `(top: ${n(L.marginTopMm)}mm, bottom: ${n(L.marginBottomMm)}mm, left: ${n(L.marginInnerMm)}mm, right: ${n(L.marginOuterMm)}mm)`;
   // carattere del corpo: quello dello stile "corpo" se scelto, altrimenti quello del documento
-  const font = TYPST_FONT[styleFont(body, L)];
+  const font = bodyFontStack(L, 'typst');
   const lines = [
     `// Generato da Alexandria`,
     `#set document(title: ${str(ctx.title)}${s.author ? `, author: (${str(s.author)},)` : ''})`,

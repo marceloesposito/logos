@@ -2,7 +2,7 @@
 // formato pagina e margini dalle impostazioni, intestazione e numeri di pagina.
 import { markColor, TEXT_HEX, HIGHLIGHT_WORD, type TextColor, type HighlightColor } from '../doc/colors';
 import { resolveCallout, calloutHex } from '../doc/callouts';
-import { WORD_FONT, styleFont } from '../layout/model';
+import { WORD_FONT, bodyFontStack } from '../layout/model';
 import {
   CommentRangeStart,
   CommentRangeEnd,
@@ -420,7 +420,7 @@ export async function toDocx(doc: PMNode, ctx: ExportContext): Promise<Uint8Arra
     features: { updateFields: true },
     styles: {
       default: {
-        document: { run: { font: WORD_FONT[styleFont(L.styles.body, L)], size: fontSize }, paragraph: { spacing: { line: Math.round(L.leading * 240), after: Math.round(L.styles.body.spaceAfterPt * 20) } } },
+        document: { run: { font: bodyFontStack(L, 'word'), size: fontSize }, paragraph: { spacing: { line: Math.round(L.leading * 240), after: Math.round(L.styles.body.spaceAfterPt * 20) } } },
         // titoli con un carattere loro (Layout > Stili di paragrafo)
         ...(L.styles.h1.font !== 'inherit' ? { heading1: { run: { font: WORD_FONT[L.styles.h1.font] } } } : {}),
         ...(L.styles.h2.font !== 'inherit' ? { heading2: { run: { font: WORD_FONT[L.styles.h2.font] } } } : {}),
