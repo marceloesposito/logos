@@ -35,8 +35,8 @@ export const EDITOR_FONT: Record<Exclude<StyleFont, 'inherit'>, string> = {
 /** Famiglie per il PDF (font inclusi in Typst). */
 export const TYPST_FONT: Record<Exclude<StyleFont, 'inherit'>, string> = {
   serif: '("Libertinus Serif", "New Computer Modern")',
-  sans: '("New Computer Modern Sans", "DejaVu Sans")',
-  mono: '("DejaVu Sans Mono",)',
+  sans: '("Inter", "New Computer Modern Sans", "DejaVu Sans")',
+  mono: '("JetBrains Mono", "DejaVu Sans Mono")',
 };
 
 /** Famiglie per HTML e Word (con i ripieghi di sistema). */
@@ -46,6 +46,56 @@ export const WEB_FONT: Record<Exclude<StyleFont, 'inherit'>, string> = {
   mono: '"JetBrains Mono", Menlo, Consolas, monospace',
 };
 export const WORD_FONT: Record<Exclude<StyleFont, 'inherit'>, string> = { serif: 'Libertinus Serif', sans: 'Calibri', mono: 'Consolas' };
+
+/**
+ * Caratteri del testo tra cui scegliere (Layout ed export): quelli inclusi in Alexandria e i classici
+ * dell'HTML con i loro ripieghi. Per ognuno la pila per il web (editor, HTML), per Typst (PDF: se il
+ * carattere non c'e' sul computer si passa al successivo) e il nome per Word.
+ */
+export interface TextFont {
+  id: string;
+  label: string;
+  group: 'alexandria' | 'web' | 'generic';
+  web: string;
+  typst: string;
+  word: string;
+}
+
+const SERIF_TYPST = '"Libertinus Serif", "New Computer Modern"';
+const SANS_TYPST = '"Inter", "New Computer Modern Sans", "DejaVu Sans"';
+const MONO_TYPST = '"JetBrains Mono", "DejaVu Sans Mono"';
+
+export const TEXT_FONTS: TextFont[] = [
+  { id: 'libertinus', label: 'Libertinus Serif', group: 'alexandria', web: '"Libertinus Serif", Georgia, serif', typst: `(${SERIF_TYPST})`, word: 'Libertinus Serif' },
+  { id: 'inter', label: 'Inter', group: 'alexandria', web: 'Inter, "Helvetica Neue", Arial, sans-serif', typst: `(${SANS_TYPST})`, word: 'Inter' },
+  { id: 'jetbrains', label: 'JetBrains Mono', group: 'alexandria', web: '"JetBrains Mono", Menlo, Consolas, monospace', typst: `(${MONO_TYPST})`, word: 'JetBrains Mono' },
+  { id: 'georgia', label: 'Georgia', group: 'web', web: 'Georgia, serif', typst: `("Georgia", ${SERIF_TYPST})`, word: 'Georgia' },
+  { id: 'times', label: 'Times New Roman', group: 'web', web: '"Times New Roman", Times, serif', typst: `("Times New Roman", "Times", ${SERIF_TYPST})`, word: 'Times New Roman' },
+  { id: 'palatino', label: 'Palatino', group: 'web', web: 'Palatino, "Palatino Linotype", "Book Antiqua", serif', typst: `("Palatino", "Palatino Linotype", "Book Antiqua", ${SERIF_TYPST})`, word: 'Palatino Linotype' },
+  { id: 'helvetica', label: 'Helvetica', group: 'web', web: '"Helvetica Neue", Helvetica, Arial, sans-serif', typst: `("Helvetica Neue", "Helvetica", "Arial", ${SANS_TYPST})`, word: 'Helvetica' },
+  { id: 'arial', label: 'Arial', group: 'web', web: 'Arial, Helvetica, sans-serif', typst: `("Arial", "Helvetica", ${SANS_TYPST})`, word: 'Arial' },
+  { id: 'verdana', label: 'Verdana', group: 'web', web: 'Verdana, Geneva, sans-serif', typst: `("Verdana", "Geneva", ${SANS_TYPST})`, word: 'Verdana' },
+  { id: 'courier', label: 'Courier New', group: 'web', web: '"Courier New", Courier, monospace', typst: `("Courier New", "Courier", ${MONO_TYPST})`, word: 'Courier New' },
+  { id: 'serif', label: 'serif', group: 'generic', web: 'serif', typst: `("Times New Roman", "Times", ${SERIF_TYPST})`, word: 'Times New Roman' },
+  { id: 'sans-serif', label: 'sans-serif', group: 'generic', web: 'sans-serif', typst: `("Helvetica", "Arial", ${SANS_TYPST})`, word: 'Arial' },
+  { id: 'monospace', label: 'monospace', group: 'generic', web: 'monospace', typst: `("Courier New", "Courier", ${MONO_TYPST})`, word: 'Courier New' },
+];
+
+export function textFont(id: string | null | undefined): TextFont | null {
+  return TEXT_FONTS.find((f) => f.id === id) ?? null;
+}
+
+/** Carattere scelto per il documento: quello in `fontFamily` o, se manca, quello di `font` (serif/sans). */
+export function docFontId(L: Pick<LayoutSettings, 'font' | 'fontFamily'>): string {
+  return textFont(L.fontFamily)?.id ?? (L.font === 'sans' ? 'inter' : 'libertinus');
+}
+
+/** Pila di caratteri del corpo del testo per un formato d'uscita. */
+export function bodyFontStack(L: LayoutSettings, target: 'web' | 'typst' | 'word'): string {
+  const body = L.styles.body;
+  if (body.font && body.font !== 'inherit') return (target === 'web' ? WEB_FONT : target === 'typst' ? TYPST_FONT : WORD_FONT)[body.font];
+  return textFont(docFontId(L))![target];
+}
 
 /** Carattere effettivo di uno stile: il suo, o quello del documento. */
 export function styleFont(s: ParaStyle, layout: { font: 'serif' | 'sans' }): Exclude<StyleFont, 'inherit'> {
@@ -78,6 +128,8 @@ export interface LayoutSettings {
   columns: 1 | 2 | 3;
   columnGapMm: number;
   font: 'serif' | 'sans';
+  /** carattere scelto fra TEXT_FONTS (id); null = quello di `font` */
+  fontFamily: string | null;
   fontSizePt: number;
   leading: number; // interlinea (multiplo del corpo)
   justify: boolean;
@@ -142,6 +194,7 @@ export function defaultLayout(): LayoutSettings {
     columns: 1,
     columnGapMm: 8,
     font: 'serif',
+    fontFamily: null,
     fontSizePt: 12,
     leading: 1.5,
     justify: true,

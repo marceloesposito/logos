@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
 import { parseMarkdown } from '../doc/parse';
-import { defaultDocSettings } from '../layout/model';
+import { defaultDocSettings, bodyFontStack, docFontId, TEXT_FONTS } from '../layout/model';
 import { toPlainText } from './plain';
 import { toHtml, escapeHtml } from './html';
 import { toLatex, escapeTex } from './latex';
@@ -111,8 +111,8 @@ describe('carattere per stile', () => {
   it('PDF: corpo Sans per tutto il testo, titolo 1 Monospace, didascalia Serif', async () => {
     const { toTypst } = await import('./typst');
     const src = toTypst(parseMarkdown(md), styled());
-    expect(src).toContain('font: ("New Computer Modern Sans", "DejaVu Sans")');
-    expect(src).toMatch(/#show heading\.where\(level: 1\): set text\(size: [\d.]+pt, font: \("DejaVu Sans Mono",\)/);
+    expect(src).toContain('font: ("Inter", "New Computer Modern Sans", "DejaVu Sans")');
+    expect(src).toMatch(/#show heading\.where\(level: 1\): set text\(size: [\d.]+pt, font: \("JetBrains Mono", "DejaVu Sans Mono"\)/);
     expect(src).toContain('font: ("Libertinus Serif", "New Computer Modern"))[#"Figura 1."]');
   });
 
@@ -151,5 +151,32 @@ describe('colori negli export', () => {
   it('LaTeX e testo semplice: il testo resta', () => {
     expect(toPlainText(parseMarkdown(md), ctx())).toContain('Testo rosso e verde e giallo.');
     expect(toLatex(parseMarkdown(md), ctx(), 'b.bib').tex).toContain('rosso');
+  });
+});
+
+describe('carattere del documento scelto fra quelli di Alexandria e i classici dell\'HTML', () => {
+  const withFont = (fontFamily: string | null, size = 12): ExportContext => {
+    const c = ctx();
+    const L = c.settings.layout;
+    return { ...c, settings: { ...c.settings, layout: { ...L, fontFamily, fontSizePt: size, styles: { ...L.styles, body: { ...L.styles.body, sizePt: size } } } } };
+  };
+
+  it('PDF: Georgia con i ripieghi inclusi, corpo scelto', async () => {
+    const { toTypst } = await import('./typst');
+    const src = toTypst(parseMarkdown('Testo.'), withFont('georgia', 11));
+    expect(src).toContain('#set text(font: ("Georgia", "Libertinus Serif", "New Computer Modern"), size: 11pt');
+  });
+
+  it('HTML e Word: la famiglia generica e il nome per Word', () => {
+    expect(toHtml(parseMarkdown('Testo.'), withFont('sans-serif'))).toContain('body { font-family: sans-serif;');
+    expect(bodyFontStack(withFont('times').settings.layout, 'word')).toBe('Times New Roman');
+  });
+
+  it('senza scelta (o con un id sconosciuto) vale serif/sans del documento', () => {
+    const L = withFont(null).settings.layout;
+    expect(docFontId(L)).toBe('libertinus');
+    expect(docFontId({ ...L, font: 'sans' })).toBe('inter');
+    expect(docFontId({ ...L, fontFamily: 'boh' })).toBe('libertinus');
+    expect(TEXT_FONTS.map((f) => f.group)).toEqual(expect.arrayContaining(['alexandria', 'web', 'generic']));
   });
 });
