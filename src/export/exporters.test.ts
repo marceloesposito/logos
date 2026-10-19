@@ -68,6 +68,25 @@ describe('LaTeX', () => {
   });
 });
 
+describe('tabelle con larghezze e allineamento negli export', () => {
+  const md = '| A | B |\n| --- | ---: |\n| 1 | 2 |\n\n<!-- widths:30,70 -->\n';
+
+  it('HTML: colgroup e allineamento delle celle', () => {
+    const h = toHtml(parseMarkdown(md), ctx());
+    expect(h).toContain('<colgroup><col style="width: 30%"><col style="width: 70%"></colgroup>');
+    expect(h).toContain('<td style="text-align: right">2</td>');
+  });
+
+  it('Typst: colonne in frazioni', async () => {
+    const { toTypst } = await import('./typst');
+    expect(toTypst(parseMarkdown(md), ctx())).toContain('#table(columns: (30fr, 70fr), align: (left, right,)');
+  });
+
+  it('LaTeX: colonne p{} in proporzione', () => {
+    expect(toLatex(parseMarkdown(md), ctx(), 'b.bib').tex).toContain('p{0.276\\linewidth}');
+  });
+});
+
 describe('riquadri evidenziati e didascalie negli export', () => {
   const md = '> [!WARNING]\n>\n> Controllare le date.\n\n> [!TIP] Consiglio pratico\n>\n> Rileggi ad alta voce.\n\nFigura 1. <!-- style:caption -->\n';
 

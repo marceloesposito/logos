@@ -1,5 +1,6 @@
 // Documento -> pagina HTML autonoma (stili inclusi, immagini e formule incorporate, note in fondo).
 // Si scrive in un file: tutto il testo dell'utente passa da escapeHtml.
+import { columnWidths } from '../doc/tables';
 import { resolveCallout, calloutHex } from '../doc/callouts';
 import { WEB_FONT, bodyFontStack } from '../layout/model';
 import { docTexts } from '../i18n/writing';
@@ -158,10 +159,15 @@ export function toHtml(doc: PMNode, ctx: ExportContext): string {
       }
       case 'table': {
         const rows = b.content ?? [];
-        const cell = (c: PMNode, tag: string) => `<${tag}>${(c.content ?? []).map((p) => inline(p.content)).join('<br>')}</${tag}>`;
-        return `<table><thead><tr>${(rows[0]?.content ?? []).map((c) => cell(c, 'th')).join('')}</tr></thead><tbody>${rows
+        const cols = Math.max(1, ...rows.map((r) => r.content?.length ?? 0));
+        const al = (b.attrs?.align as (string | null)[] | undefined) ?? [];
+        const widths = columnWidths(b.attrs, cols);
+        const cell = (c: PMNode, tag: string, i: number) =>
+          `<${tag}${al[i] && al[i] !== 'left' ? ` style="text-align: ${al[i]}"` : ''}>${(c.content ?? []).map((p) => inline(p.content)).join('<br>')}</${tag}>`;
+        const colgroup = widths ? `<colgroup>${widths.map((w) => `<col style="width: ${w}%">`).join('')}</colgroup>` : '';
+        return `<table${widths ? ' style="width: 100%; table-layout: fixed"' : ''}>${colgroup}<thead><tr>${(rows[0]?.content ?? []).map((c, i) => cell(c, 'th', i)).join('')}</tr></thead><tbody>${rows
           .slice(1)
-          .map((r) => `<tr>${(r.content ?? []).map((c) => cell(c, 'td')).join('')}</tr>`)
+          .map((r) => `<tr>${(r.content ?? []).map((c, i) => cell(c, 'td', i)).join('')}</tr>`)
           .join('')}</tbody></table>`;
       }
       case 'pageBreak':

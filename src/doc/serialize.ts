@@ -1,5 +1,6 @@
 // Albero del documento -> Markdown (Pandoc/GFM). Deve fare il giro completo con parse.ts:
 // parse(serialize(doc)) == doc per ogni documento prodotto dall'editor.
+import { widthsComment } from './tables';
 import { calloutMarker, calloutKindOf } from './callouts';
 import { markColor } from './colors';
 import type { PMNode, PMMark, MarkType, CitationItem } from './types';
@@ -151,7 +152,8 @@ function table(n: PMNode, st: State): string {
       return a === 'center' ? ':---:' : a === 'right' ? '---:' : a === 'left' ? ':---' : '---';
     }).join(' | ') +
     ' |';
-  return [fmt(rows[0]), sep, ...rows.slice(1).map(fmt)].join('\n');
+  const widths = widthsComment(n.attrs, cols);
+  return [fmt(rows[0]), sep, ...rows.slice(1).map(fmt)].join('\n') + (widths ? '\n\n' + widths : '');
 }
 
 // ---------------------------------------------------------------- in linea

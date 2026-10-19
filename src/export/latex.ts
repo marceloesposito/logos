@@ -1,4 +1,5 @@
 // Documento -> LaTeX con biblatex (le citazioni restano chiavi, la bibliografia va nel .bib).
+import { columnWidths } from '../doc/tables';
 import { resolveCallout } from '../doc/callouts';
 import { docTexts } from '../i18n/writing';
 import type { PMNode, PMMark, CitationItem } from '../doc/types';
@@ -175,7 +176,12 @@ export function toLatex(doc: PMNode, ctx: ExportContext, bibFile: string): Latex
         const rows = b.content ?? [];
         const cols = Math.max(1, ...rows.map((r) => r.content?.length ?? 0));
         const al = (b.attrs?.align as (string | null)[] | undefined) ?? [];
-        const spec = Array.from({ length: cols }, (_, i) => (al[i] === 'center' ? 'c' : al[i] === 'right' ? 'r' : 'l')).join(' ');
+        const widths = columnWidths(b.attrs, cols);
+        const ragged = (a: string | null | undefined) => (a === 'center' ? '\\centering' : a === 'right' ? '\\raggedleft' : '\\raggedright');
+        // con le larghezze: colonne p{} in proporzione alla riga (meno gli spazi fra le colonne)
+        const spec = Array.from({ length: cols }, (_, i) =>
+          widths ? `>{${ragged(al[i])}\\arraybackslash}p{${((widths[i] / 100) * 0.92).toFixed(3)}\\linewidth}` : al[i] === 'center' ? 'c' : al[i] === 'right' ? 'r' : 'l',
+        ).join(' ');
         const row = (r: PMNode) => (r.content ?? []).map((c) => (c.content ?? []).map((p) => inline(p.content)).join(' ')).join(' & ') + ' \\\\';
         return `\\begin{center}\n\\begin{tabular}{${spec}}\n\\toprule\n${rows[0] ? row(rows[0]) + '\n\\midrule\n' : ''}${rows.slice(1).map(row).join('\n')}\n\\bottomrule\n\\end{tabular}\n\\end{center}`;
       }
@@ -209,7 +215,7 @@ export function toLatex(doc: PMNode, ctx: ExportContext, bibFile: string): Latex
 \\usepackage{libertine}
 \\usepackage{csquotes}
 \\usepackage[paperwidth=${L.widthMm}mm,paperheight=${L.heightMm}mm,top=${L.marginTopMm}mm,bottom=${L.marginBottomMm}mm,inner=${L.marginInnerMm}mm,outer=${L.marginOuterMm}mm]{geometry}
-\\usepackage{graphicx,booktabs,amsmath,amssymb,ulem,soul}
+\\usepackage{graphicx,booktabs,array,amsmath,amssymb,ulem,soul}
 \\usepackage[hidelinks]{hyperref}
 ${L.lineNumbersInPdf ? '\\usepackage{lineno}\n\\linenumbers' : ''}
 \\usepackage[style=${style},backend=biber]{biblatex}

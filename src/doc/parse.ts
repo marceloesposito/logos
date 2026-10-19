@@ -1,6 +1,7 @@
 // Markdown -> albero del documento. Markdown di Pandoc/GFM con le estensioni di Alexandria:
 // citazioni [@chiave], [[wikilink]], note [^n], formule $...$, figure ![..](..){attr},
 // e commenti HTML per interruzioni di pagina, sezioni, sommario e bibliografia.
+import { parseWidths } from './tables';
 import { parseCalloutMarker } from './callouts';
 import { isHighlightColor, isTextColor } from './colors';
 import { unified } from 'unified';
@@ -63,6 +64,13 @@ function blocks(nodes: M.RootContent[], ctx: Ctx): PMNode[] {
         i = j;
         const content = blocks(inner, ctx);
         out.push({ type: 'bibliography', content: content.length ? content : [{ type: 'paragraph' }] });
+        continue;
+      }
+      // larghezza delle colonne della tabella appena letta
+      const widths = c ? parseWidths(c[1]) : null;
+      if (widths) {
+        const prev = out[out.length - 1];
+        if (prev?.type === 'table') prev.attrs = { ...prev.attrs, widths };
         continue;
       }
     }
