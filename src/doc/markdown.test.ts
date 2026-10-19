@@ -34,6 +34,7 @@ const CANONICAL = [
   '<!-- section master="body" columns="2" -->\n',
   '<!-- toc -->\n',
   '| A | B |\n| :---: | ---: |\n| 1 | 2 |\n',
+  '| A | B | C |\n| --- | --- | --- |\n| 1 | 2 | 3 |\n\n<!-- widths:20,50,30 -->\n',
   'Testo <u>sottolineato</u>, <mark>evidenziato</mark>, H<sub>2</sub>O e x<sup>2</sup>.\n',
   'Colori: <span data-color="red">rosso</span>, <mark data-color="green">verde</mark> e <span data-color="blue"><mark data-color="yellow">entrambi</mark></span>.\n',
   'Due evidenziatori vicini: <mark data-color="pink">rosa</mark><mark data-color="blue">blu</mark>.\n',
@@ -130,6 +131,18 @@ describe('parse', () => {
     const doc = parseMarkdown('# Titolo <!-- align:right -->');
     expect(doc.content![0].attrs).toEqual({ level: 1, textAlign: 'right' });
     expect(doc.content![0].content).toEqual([{ type: 'text', text: 'Titolo' }]);
+  });
+
+  it('larghezza delle colonne: commento dopo la tabella, scartato se non torna', () => {
+    const t = parseMarkdown('| A | B |\n| --- | --- |\n| 1 | 2 |\n\n<!-- widths:1,3 -->\n').content![0];
+    expect(t.attrs?.widths).toEqual([1, 3]);
+    // in uscita in percentuale
+    expect(serializeMarkdown({ type: 'doc', content: [t] })).toContain('<!-- widths:25,75 -->');
+    // numero di colonne diverso (tabella cambiata altrove): niente larghezze
+    const bad = { ...t, attrs: { ...t.attrs, widths: [20, 30, 50] } };
+    expect(serializeMarkdown({ type: 'doc', content: [bad] })).not.toContain('widths');
+    // commento senza tabella prima: ignorato
+    expect(parseMarkdown('Testo\n\n<!-- widths:50,50 -->\n').content).toHaveLength(1);
   });
 
   it('documento vuoto', () => {

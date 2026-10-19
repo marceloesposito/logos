@@ -1,5 +1,6 @@
 // Documento -> DOCX (Word) con la libreria docx: stili, note, immagini, tabelle, elenchi,
 // formato pagina e margini dalle impostazioni, intestazione e numeri di pagina.
+import { columnWidths } from '../doc/tables';
 import { markColor, TEXT_HEX, HIGHLIGHT_WORD, type TextColor, type HighlightColor } from '../doc/colors';
 import { resolveCallout, calloutHex } from '../doc/callouts';
 import { WORD_FONT, bodyFontStack } from '../layout/model';
@@ -333,6 +334,7 @@ export async function toDocx(doc: PMNode, ctx: ExportContext): Promise<Uint8Arra
         }
         case 'table': {
           const rows = b.content ?? [];
+          const widths = columnWidths(b.attrs, Math.max(1, ...rows.map((r) => r.content?.length ?? 0)));
           out.push(
             new Table({
               width: { size: 100, type: WidthType.PERCENTAGE },
@@ -341,8 +343,9 @@ export async function toDocx(doc: PMNode, ctx: ExportContext): Promise<Uint8Arra
                   new TableRow({
                     tableHeader: ri === 0,
                     children: (r.content ?? []).map(
-                      (c) =>
+                      (c, ci) =>
                         new TableCell({
+                          ...(widths ? { width: { size: widths[ci], type: WidthType.PERCENTAGE } } : {}),
                           children: (c.content ?? []).map((p) => new Paragraph({ children: ri === 0 ? inline(p.content).map((x) => x) : inline(p.content) })),
                         }),
                     ),

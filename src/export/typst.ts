@@ -2,6 +2,7 @@
 // carattere dell'utente puo' essere interpretato come markup; la formattazione e' fatta
 // con chiamate esplicite (#strong, #emph, #footnote...). Le impostazioni di pagina, gli stili
 // di paragrafo e le pagine mastro vengono dalle impostazioni del documento.
+import { columnWidths } from '../doc/tables';
 import { resolveCallout, calloutHex } from '../doc/callouts';
 import { markColor, TEXT_HEX, HIGHLIGHT_HEX, type TextColor, type HighlightColor } from '../doc/colors';
 import type { PMNode, PMMark, CitationItem } from '../doc/types';
@@ -224,7 +225,8 @@ function block(b: PMNode, ctx: ExportContext, st: State): string {
         .slice(1)
         .flatMap((r) => (r.content ?? []).map(cell))
         .join(', ');
-      return `#table(columns: ${cols}, align: (${align},), stroke: 0.4pt, inset: 5pt, ${head}${body})`;
+      const widths = columnWidths(b.attrs, cols);
+      return `#table(columns: ${widths ? `(${widths.map((w) => `${w}fr`).join(', ')})` : cols}, align: (${align},), stroke: 0.4pt, inset: 5pt, ${head}${body})`;
     }
     case 'pageBreak':
       return '#pagebreak()';
